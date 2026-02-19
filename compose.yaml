@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: my-soup-postgres
+    environment:
+      POSTGRES_USER: eddy3o
+      POSTGRES_PASSWORD: 228097.And
+      POSTGRES_DB: soup
+
+
