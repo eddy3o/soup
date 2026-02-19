@@ -1,4 +1,4 @@
-module pipeline
+module soup
 
 go 1.25.6
 

@@ -1,6 +1,6 @@
 package main
 
-import "pipeline/internal/server"
+import "soup/internal/server"
 
 func main() {
 	server := server.NewServer()

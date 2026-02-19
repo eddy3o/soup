@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 	"os"
-	"pipeline/internal/auth"
+	"soup/internal/auth"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
