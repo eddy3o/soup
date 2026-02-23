@@ -1,9 +1,10 @@
-package server
+package infraestructure
 
 import (
 	"net/http"
 	"os"
-	"soup/internal/auth"
+	"soup/internal/router"
+	"soup/internal/store"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -25,17 +26,15 @@ func NewServer() *Server {
 }
 
 func (s *Server) Run() error {
-	router := gin.Default()
+	r := gin.Default()
 
-	api := router.Group("/api")
+	rds := store.NewRedis()
 
-	authHandler := auth.NewHandler()
-
-	auth.RegisterRoutes(api, authHandler)
+	router.RegisterRouteGroups(r, rds)
 
 	httpServer := &http.Server{
 		Addr:    ":" + strconv.Itoa(s.port),
-		Handler: router,
+		Handler: r,
 	}
 
 	return httpServer.ListenAndServe()

@@ -1,9 +1,8 @@
 package main
 
-import "soup/internal/server"
+import "soup/internal/infraestructure"
 
 func main() {
-	server := server.NewServer()
-
+	server := infraestructure.NewServer()
 	server.Run()
 }

@@ -2,20 +2,30 @@ package auth
 
 import (
 	"net/http"
+	"soup/internal/store"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
+	Redis *store.Redis
 }
+
+type User struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+var demoUser = User{ID: "1", Username: "user", Password: "pass"}
 
 type LoginRequest struct {
-	username string
-	password string
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(redis *store.Redis) *Handler {
+	return &Handler{Redis: redis}
 }
 
 func (h *Handler) Login(c *gin.Context) {
