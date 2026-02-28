@@ -6,7 +6,11 @@ import (
 	"os"
 )
 
-func getDBConnection() (*sql.DB, error) {
+type Database struct {
+	DB *sql.DB
+}
+
+func NewDatabase() (*Database, error) {
 
 	host := os.Getenv("DB_HOST")
 	if host == "" {
@@ -24,5 +28,9 @@ func getDBConnection() (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", connStr)
 
-	return db, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &Database{DB: db}, nil
 }

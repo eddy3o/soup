@@ -13,13 +13,7 @@ type Handler struct {
 	Redis *store.Redis
 }
 
-type User struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-var demoUser = User{ID: "1", Username: "user", Password: "pass"}
+var demoUser = User{ID: "1", Username: "user", PasswordHash: "pass"}
 
 type LoginRequest struct {
 	Username string `json:"username"`
@@ -38,7 +32,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	if req.Username != demoUser.Username || req.Password != demoUser.Password {
+	if req.Username != demoUser.Username || req.Password != demoUser.PasswordHash {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}

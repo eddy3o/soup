@@ -19,3 +19,11 @@ go.work.sum
 .env
 
 data/
+
+soup
+soup-*
+
+/bin/
+/dist/
+/build/
+
