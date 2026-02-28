@@ -17,7 +17,11 @@ func NewRedis() *Redis {
 	if addr == "" {
 		addr = "localhost:6379"
 	}
-	rdb := redis.NewClient(&redis.Options{Addr: addr})
+	password := os.Getenv("REDIS_PASSWORD")
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: password,
+	})
 	return &Redis{Client: rdb}
 }
 

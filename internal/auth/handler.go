@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"soup/internal/pkg/token"
 	"soup/internal/store"
 
 	"github.com/gin-gonic/gin"
@@ -36,5 +37,22 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
+	if req.Username != demoUser.Username || req.Password != demoUser.Password {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
+	}
+
+	toks, err := token.IssueTokens(demoUser.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not issue tokens"})
+		return
+	}
+
+	if err = token.Persist(c.Request.Context(), h.Redis, toks); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not persist tokens"})
+		return
+	}
+
+	token.SetAuthCookies(c, toks)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
