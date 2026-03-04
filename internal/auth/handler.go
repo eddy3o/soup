@@ -1,72 +1,45 @@
 package auth
 
 import (
-	"context"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"soup/internal/pkg/token"
-	"soup/internal/store"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	Redis *store.Redis
+	service Service
 }
 
-var demoUser = User{ID: "1", Username: "user", PasswordHash: "pass"}
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func NewHandler(redis *store.Redis) *Handler {
-	return &Handler{Redis: redis}
+func NewHandler(service Service) *Handler {
+	return &Handler{service: service}
 }
 
 func (h *Handler) Login(c *gin.Context) {
-	var req LoginRequest
+	var req UserLogin
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if req.Username != demoUser.Username || req.Password != demoUser.PasswordHash {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		return
-	}
+	toks, err := h.service.Login(c, req)
 
-	toks, err := token.IssueTokens(demoUser.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not issue tokens"})
-		return
+		switch err {
+		case ErrInvalidCredentials:
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		}
 	}
-
-	if err = token.Persist(c.Request.Context(), h.Redis, toks); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not persist tokens"})
-		return
-	}
-
 	token.SetAuthCookies(c, toks)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
 func (h *Handler) Logout(c *gin.Context) {
-	acc, _ := c.Cookie("access_token")
-	ref, _ := c.Cookie("refresh_token")
-	ctx := context.Background()
+	accessToken, _ := c.Cookie("access_token")
+	refreshToken, _ := c.Cookie("refresh_token")
 
-	if acc != "" {
-		if claims, err := token.ParseAccess(acc); err == nil {
-			_ = h.Redis.DelJTI(ctx, "access:"+claims.ID)
-		}
-	}
-	if ref != "" {
-		if claims, err := token.ParseRefresh(ref); err == nil {
-			_ = h.Redis.DelJTI(ctx, "refresh:"+claims.ID)
-		}
-	}
+	h.service.Logout(c.Request.Context(), accessToken, refreshToken)
+
 	token.ClearAuthCookies(c)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

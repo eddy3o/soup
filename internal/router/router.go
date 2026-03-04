@@ -9,7 +9,10 @@ import (
 
 func RegisterRouteGroups(r *gin.Engine, rds *store.Redis) {
 	authApi := r.Group("/auth")
-	authHandler := auth.NewHandler(rds)
+
+	authRepo := auth.NewRepository(rds)
+	authService := auth.NewService(authRepo, rds)
+	authHandler := auth.NewHandler(authService)
 
 	auth.RegisterRoutes(authApi, authHandler)
 }
