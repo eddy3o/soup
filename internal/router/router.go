@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRouteGroups(r *gin.Engine, rds *store.Redis) {
+func RegisterRouteGroups(r *gin.Engine, rds *store.Redis, db *store.Database) {
 	authApi := r.Group("/auth")
 
-	authRepo := auth.NewRepository(rds)
+	authRepo := auth.NewRepository(rds, db)
 	authService := auth.NewService(authRepo, rds)
 	authHandler := auth.NewHandler(authService)
 

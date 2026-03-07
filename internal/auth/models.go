@@ -1,22 +1,22 @@
 package auth
 
 import (
+	"database/sql"
 	"errors"
-	"regexp"
 	"time"
 )
 
 type User struct {
-	ID        string    `json:"id"`
-	Password  string    `json:"password"`
-	Phone     string    `json:"phone"`
-	Name      string    `json:"name"`
-	Address   string    `json:"address"`
-	Email     string    `json:"email"`
-	PhotoURL  string    `json:"photo_url"`
-	IsAdmin   string    `json:"is_admin"`
-	PushToken string    `json:"push_token"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        string         `json:"id"`
+	Password  string         `json:"password"`
+	Phone     string         `json:"phone"`
+	Name      sql.NullString `json:"name"`
+	Address   sql.NullString `json:"address"`
+	Email     sql.NullString `json:"email"`
+	PhotoURL  sql.NullString `json:"photo_url"`
+	IsAdmin   string         `json:"is_admin"`
+	PushToken sql.NullString `json:"push_token"`
+	CreatedAt time.Time      `json:"created_at"`
 }
 
 type UserLogin struct {
@@ -25,14 +25,13 @@ type UserLogin struct {
 }
 
 type UserRegister struct {
-	Email    string `json:"email" binding:"required,email"`
+	Phone    string `json:"phone" binding:"required,min=10"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
-func (u *UserRegister) Validate() error {
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	if !emailRegex.MatchString(u.Email) {
-		return errors.New("invalid email format")
-	}
-	return nil
-}
+var (
+	ErrUserNotFound         = errors.New("user not found")
+	ErrInvalidCredentials   = errors.New("invalid credentials")
+	ErrUserAlreadyExists    = errors.New("user already exists")
+	ErrFailedToHashPassword = errors.New("failed to hash password")
+)

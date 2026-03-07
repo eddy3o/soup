@@ -2,22 +2,17 @@ package auth
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"soup/internal/store"
 
 	"soup/internal/pkg/token"
-)
-
-var demoUser = User{ID: "1", Phone: "4436404393", Password: "password"}
-
-var (
-	ErrUserNotFound       = errors.New("user not found")
-	ErrInvalidCredentials = errors.New("invalid credentials")
+	"soup/internal/pkg/utils"
 )
 
 type Service interface {
 	Login(ctx context.Context, req UserLogin) (*token.Tokens, error)
 	Logout(ctx context.Context, accessToken string, refreshToken string) error
+	Register(ctx context.Context, phone string, hashedPassword string) (*User, error)
 }
 
 type service struct {
@@ -33,11 +28,18 @@ func NewService(repo Repository, redis *store.Redis) Service {
 }
 
 func (s *service) Login(ctx context.Context, req UserLogin) (*token.Tokens, error) {
-	if req.Phone != demoUser.Phone || req.Password != demoUser.Password {
+	user, err := s.repo.FindByPhone(ctx, req.Phone)
+
+	if err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
-	toks, err := token.IssueTokens(demoUser.ID)
+	if err := utils.Verify(req.Password, user.Password); err != nil {
+		fmt.Println("password mismatch")
+		return nil, ErrInvalidCredentials
+	}
+
+	toks, err := token.IssueTokens(user.ID)
 
 	return toks, err
 }
@@ -54,4 +56,15 @@ func (s *service) Logout(ctx context.Context, accessToken string, refreshToken s
 		}
 	}
 	return nil
+}
+
+func (s *service) Register(ctx context.Context, phone string, hashedPassword string) (*User, error) {
+	user, err := s.repo.Create(ctx, User{
+		Phone:    phone,
+		Password: hashedPassword,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

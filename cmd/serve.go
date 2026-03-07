@@ -46,6 +46,5 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 
 	server := infrastructure.NewServer()
-	server.Run()
-	return nil
+	return server.Run()
 }

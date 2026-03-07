@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"soup/internal/router"
@@ -29,11 +30,16 @@ func (s *Server) Run() error {
 	r := gin.Default()
 
 	rds := store.NewRedis()
+	db, err := store.NewDatabase()
 
-	router.RegisterRouteGroups(r, rds)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	router.RegisterRouteGroups(r, rds, db)
 
 	httpServer := &http.Server{
-		Addr:    ":" + strconv.Itoa(s.port),
+		Addr:    fmt.Sprintf(":%d", s.port),
 		Handler: r,
 	}
 
