@@ -4,16 +4,21 @@ import (
 	"net/http"
 	"soup/internal/pkg/token"
 	"soup/internal/pkg/utils"
+	"soup/internal/store"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
 	service Service
+	rds     *store.Redis
 }
 
-func NewHandler(service Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service Service, redis *store.Redis) *Handler {
+	return &Handler{
+		service: service,
+		rds:     redis,
+	}
 }
 
 func (h *Handler) Login(c *gin.Context) {
@@ -38,6 +43,7 @@ func (h *Handler) Login(c *gin.Context) {
 
 	}
 	token.SetAuthCookies(c, toks)
+	token.Persist(c, h.rds, toks)
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
