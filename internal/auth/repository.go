@@ -2,8 +2,6 @@ package auth
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"soup/internal/store"
 )
 
@@ -43,12 +41,7 @@ func (r *repository) FindByPhone(ctx context.Context, phone string) (*User, erro
 		&user.PushToken,
 		&user.CreatedAt,
 	)
-	if err == sql.ErrNoRows {
-		fmt.Println("no rows")
-		return nil, ErrUserNotFound
-	}
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return &user, nil

@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	Login(ctx context.Context, req UserLogin) (*token.Tokens, error)
+	Login(ctx context.Context, req UserLogin) (*User, *token.Tokens, error)
 	Logout(ctx context.Context, accessToken string, refreshToken string) error
 	Register(ctx context.Context, phone string, hashedPassword string) (*User, error)
 }
@@ -27,21 +27,21 @@ func NewService(repo Repository, redis *store.Redis) Service {
 	}
 }
 
-func (s *service) Login(ctx context.Context, req UserLogin) (*token.Tokens, error) {
+func (s *service) Login(ctx context.Context, req UserLogin) (*User, *token.Tokens, error) {
 	user, err := s.repo.FindByPhone(ctx, req.Phone)
 
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, nil, ErrInvalidCredentials
 	}
 
 	if err := utils.Verify(req.Password, user.Password); err != nil {
 		fmt.Println("password mismatch")
-		return nil, ErrInvalidCredentials
+		return nil, nil, ErrInvalidCredentials
 	}
 
 	toks, err := token.IssueTokens(user.ID)
 
-	return toks, err
+	return user, toks, err
 }
 
 func (s *service) Logout(ctx context.Context, accessToken string, refreshToken string) error {

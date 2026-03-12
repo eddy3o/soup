@@ -29,7 +29,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	toks, err := h.service.Login(c, req)
+	user, toks, err := h.service.Login(c, req)
 
 	if err != nil {
 		switch err {
@@ -44,7 +44,11 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 	token.SetAuthCookies(c, toks)
 	token.Persist(c, h.rds, toks)
-	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  toks.Access,
+		"refresh_token": toks.Refresh,
+		"user":          user,
+	})
 }
 
 func (h *Handler) Logout(c *gin.Context) {
@@ -54,7 +58,7 @@ func (h *Handler) Logout(c *gin.Context) {
 	h.service.Logout(c.Request.Context(), accessToken, refreshToken)
 
 	token.ClearAuthCookies(c)
-	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func (h *Handler) Register(c *gin.Context) {
