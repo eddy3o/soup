@@ -7,7 +7,6 @@ import (
 
 type Service interface {
 	GetUserByID(ctx context.Context, id string) (*auth.User, error)
-	// Put(ctx context.Context, user auth.User) (*auth.User, error)
 }
 
 type service struct {
