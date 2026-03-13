@@ -5,6 +5,7 @@ import (
 	"soup/internal/middleware"
 	"soup/internal/products"
 	"soup/internal/store"
+	"soup/internal/users"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,15 @@ func RegisterRouteGroups(r *gin.Engine, rds *store.Redis, db *store.Database) {
 	authHandler := auth.NewHandler(authService, rds)
 
 	auth.RegisterRoutes(authApi, authHandler)
+
+	// User routes
+	userApi := r.Group("/users")
+
+	userRepo := users.NewRepository(db)
+	userService := users.NewService(userRepo)
+	userHandler := users.NewHandler(userService)
+
+	users.RegisterRoutes(userApi, userHandler, middleware)
 
 	// Product routes
 	productsApi := r.Group("/products")
