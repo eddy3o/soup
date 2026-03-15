@@ -2,13 +2,14 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"soup/internal/auth"
 	"soup/internal/store"
 )
 
 type Repository interface {
 	Get(ctx context.Context, id string) (*auth.User, error)
-	Put(ctx context.Context, user auth.User) (*auth.User, error)
+	Patch(ctx context.Context, user auth.User) (*auth.User, error)
 }
 
 type repository struct {
@@ -45,33 +46,24 @@ func (r *repository) Get(ctx context.Context, id string) (*auth.User, error) {
 	return &user, nil
 }
 
-func (r *repository) Put(ctx context.Context, user auth.User) (*auth.User, error) {
+func (r *repository) Patch(ctx context.Context, user auth.User) (*auth.User, error) {
 	query := `
-		INSERT INTO users (id, phone, password, email, name, address, photo_url, is_admin, push_token)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		ON CONFLICT (id) DO UPDATE SET
-			phone = EXCLUDED.phone,
-			password = EXCLUDED.password,
-			email = EXCLUDED.email,
-			name = EXCLUDED.name,
-			address = EXCLUDED.address,
-			photo_url = EXCLUDED.photo_url,
-			is_admin = EXCLUDED.is_admin,
-			push_token = EXCLUDED.push_token
-		RETURNING id, phone, password, email, name, address, photo_url, is_admin, push_token, created_at
+	  UPDATE users
+	  SET email = COALESCE(NULLIF($2, ''), email),
+	      name = COALESCE(NULLIF($3, ''), name),
+	      address = COALESCE(NULLIF($4, ''), address),
+	      photo_url = COALESCE(NULLIF($5, ''), photo_url)
+	  WHERE id = $1
+	  RETURNING id, phone, password, email, name, address, photo_url, is_admin, push_token, created_at
 	`
 
 	var newUser auth.User
 	err := r.db.DB.QueryRowContext(ctx, query,
 		user.ID,
-		user.Phone,
-		user.Password,
-		user.Email,
-		user.Name,
-		user.Address,
-		user.PhotoURL,
-		user.IsAdmin,
-		user.PushToken,
+		user.Email.String,
+		user.Name.String,
+		user.Address.String,
+		user.PhotoURL.String,
 	).Scan(
 		&newUser.ID,
 		&newUser.Phone,
@@ -85,6 +77,7 @@ func (r *repository) Put(ctx context.Context, user auth.User) (*auth.User, error
 		&newUser.CreatedAt,
 	)
 	if err != nil {
+		fmt.Printf("Error executing query: %v\n", err)
 		return nil, err
 	}
 	return &newUser, nil

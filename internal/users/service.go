@@ -7,6 +7,7 @@ import (
 
 type Service interface {
 	GetUserByID(ctx context.Context, id string) (*auth.User, error)
+	PatchUser(ctx context.Context, user auth.User) (*auth.User, error)
 }
 
 type service struct {
@@ -21,4 +22,8 @@ func NewService(repo Repository) Service {
 
 func (s *service) GetUserByID(ctx context.Context, id string) (*auth.User, error) {
 	return s.repo.Get(ctx, id)
+}
+
+func (s *service) PatchUser(ctx context.Context, user auth.User) (*auth.User, error) {
+	return s.repo.Patch(ctx, user)
 }
