@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 	"soup/internal/auth"
 	"soup/internal/store"
 )
@@ -77,7 +76,6 @@ func (r *repository) Patch(ctx context.Context, user auth.User) (*auth.User, err
 		&newUser.CreatedAt,
 	)
 	if err != nil {
-		fmt.Printf("Error executing query: %v\n", err)
 		return nil, err
 	}
 	return &newUser, nil

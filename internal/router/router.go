@@ -2,6 +2,7 @@ package router
 
 import (
 	"soup/internal/auth"
+	"soup/internal/categories"
 	"soup/internal/middleware"
 	"soup/internal/products"
 	"soup/internal/store"
@@ -39,4 +40,13 @@ func RegisterRouteGroups(r *gin.Engine, rds *store.Redis, db *store.Database) {
 	productsHandler := products.NewHandler(productsService)
 
 	products.RegisterRoutes(productsApi, productsHandler, middleware)
+
+	// Category routes
+	categoryApi := r.Group("/categories")
+
+	categoryRepo := categories.NewRepository(db)
+	categoryService := categories.NewService(categoryRepo)
+	categoryHandler := categories.NewHandler(categoryService)
+
+	categories.RegisterRoutes(categoryApi, categoryHandler, middleware)
 }
