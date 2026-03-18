@@ -8,27 +8,27 @@ type Service interface {
 }
 
 type service struct {
-	repository repository
+	repo Repository
 }
 
-func NewService(repository repository) Service {
+func NewService(repo Repository) Service {
 	return &service{
-		repository: repository,
+		repo: repo,
 	}
 }
 
 func (s *service) CreateOrder(userID string, req OrderCreateRequest) (Order, error) {
-	return s.repository.CreateOrder(userID, req)
+	return s.repo.CreateOrder(userID, req)
 }
 
 func (s *service) GetOrdersByUserID(userID string) ([]Order, error) {
-	return s.repository.GetOrdersByUserID(userID)
+	return s.repo.GetOrdersByUserID(userID)
 }
 
 func (s *service) GetOrderDetailsByOrderID(orderID string) ([]OderDetail, error) {
-	return s.repository.GetOrderDetailsByOrderID(orderID)
+	return s.repo.GetOrderDetailsByOrderID(orderID)
 }
 
 func (s *service) PutOrderStatusCancelled(orderID string) error {
-	return s.repository.PutOrderStatusCancelled(orderID)
+	return s.repo.PutOrderStatusCancelled(orderID)
 }
