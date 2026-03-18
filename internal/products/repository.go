@@ -3,7 +3,7 @@ package products
 import "soup/internal/store"
 
 type Repository interface {
-	FindAll() ([]Product, error)
+	FindAll(pagination PaginationParams) ([]Product, int, error)
 	FindByID(id string) (*Product, error)
 	Create(product Product) (*Product, error)
 	Update(id string, product Product) (*Product, error)
@@ -20,15 +20,23 @@ func NewRepository(db *store.Database) Repository {
 	}
 }
 
-func (r *repository) FindAll() ([]Product, error) {
+func (r *repository) FindAll(pagination PaginationParams) ([]Product, int, error) {
 	query := `
-		SELECT products.id, products.name, products.description, products.price, products.photo_url, products.available, categories.name, products.created_at, products.updated_at
+    SELECT 
+			products.id, products.name, products.description, products.price, 
+			products.photo_url, products.available, categories.name, 
+			products.created_at, products.updated_at,
+			COUNT(*) OVER() AS total_count
 		FROM products
-		INNER JOIN categories on products.category_id = categories.id	`
+		INNER JOIN categories ON products.category_id = categories.id
+    ORDER BY products.id ASC
+		LIMIT $1 OFFSET $2
+  `
 	var products []Product
-	rows, err := r.db.DB.Query(query)
+	var total int
+	rows, err := r.db.DB.Query(query, pagination.Limit, (pagination.Page-1)*pagination.Limit)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -44,18 +52,18 @@ func (r *repository) FindAll() ([]Product, error) {
 			&product.Category,
 			&product.CreatedAt,
 			&product.UpdatedAt,
+			&total,
 		)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		products = append(products, product)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return products, nil
-
+	return products, total, nil
 }
 
 func (r *repository) FindByID(id string) (*Product, error) {

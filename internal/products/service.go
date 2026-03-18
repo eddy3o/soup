@@ -1,7 +1,7 @@
 package products
 
 type Service interface {
-	FindAll() ([]Product, error)
+	FindAll(pagination PaginationParams) ([]Product, int, error)
 	FindByID(id string) (*Product, error)
 	Create(product Product) (*Product, error)
 	Update(id string, product Product) (*Product, error)
@@ -18,8 +18,8 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *service) FindAll() ([]Product, error) {
-	return s.repo.FindAll()
+func (s *service) FindAll(pagination PaginationParams) ([]Product, int, error) {
+	return s.repo.FindAll(pagination)
 }
 
 func (s *service) FindByID(id string) (*Product, error) {

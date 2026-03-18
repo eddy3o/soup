@@ -13,3 +13,19 @@ type Product struct {
 	CreatedAt   string         `json:"created_at"`
 	UpdatedAt   string         `json:"updated_at"`
 }
+
+type PaginationParams struct {
+	Page  int `form:"page" binding:"required,gte=1"`
+	Limit int `form:"limit" binding:"required,gte=1,lte=100"`
+}
+
+type PaginationResponse struct {
+	Page       int `json:"page"`
+	Limit      int `json:"limit"`
+	TotalItems int `json:"total_items"`
+	TotalPages int `json:"total_pages"`
+}
+type ProductsResponse struct {
+	Data       []Product          `json:"data"`
+	Pagination PaginationResponse `json:"pagination"`
+}
