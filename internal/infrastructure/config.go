@@ -8,6 +8,7 @@ import (
 	"soup/internal/store"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,6 +29,7 @@ func NewServer() *Server {
 
 func (s *Server) Run() error {
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	rds := store.NewRedis()
 	db, err := store.NewDatabase()
